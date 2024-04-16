@@ -3,6 +3,7 @@ package com.example.fastcp.mysql.domain.member.repository;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.jdbc.core.RowMapper;
@@ -25,6 +26,15 @@ public class MemberRepository {
 	final private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 	
 	static final private String TABLE = "Member";
+	
+	static final RowMapper<Member> rowMapper = (ResultSet resultSet, int rowNum) -> Member
+			.builder()
+			.id(resultSet.getLong("id"))
+			.email(resultSet.getString("email"))
+			.nickname(resultSet.getString("nickname"))
+			.birthday(resultSet.getObject("birthday", LocalDate.class))
+			.createdAt(resultSet.getObject("createdAt", LocalDateTime.class))
+			.build();
 
 	public Optional<Member> findById(Long id) {
 		/*
@@ -35,18 +45,21 @@ public class MemberRepository {
 		var sql = String.format("SELECT * FROM %s WHERE id = :id", TABLE);
 		var param = new MapSqlParameterSource()
 				.addValue("id", id);
-		RowMapper<Member> rowMapper = (ResultSet resultSet, int rowNum) -> Member
-				.builder()
-				.id(resultSet.getLong("id"))
-				.email(resultSet.getString("email"))
-				.nickname(resultSet.getString("nickname"))
-				.birthday(resultSet.getObject("birthday", LocalDate.class))
-				.createdAt(resultSet.getObject("createdAt", LocalDateTime.class))
-				.build();
-		 var member = namedParameterJdbcTemplate.queryForObject(sql, param, rowMapper);
+		var member = namedParameterJdbcTemplate.queryForObject(sql, param, rowMapper);
 		 
-		 return Optional.ofNullable(member);
+		return Optional.ofNullable(member);
 	}
+	
+	public List<Member> findAllbyIdIn(List<Long> ids) {
+		// 빈 리스트일 경우 처리
+		if(ids.isEmpty()) return List.of();
+		
+		var sql = String.format("SELECT * FROM %s WHERE ID IN (:ids)", TABLE);
+		var params = new MapSqlParameterSource().addValue("ids", ids);
+		
+		return namedParameterJdbcTemplate.query(sql, params, rowMapper);
+	}
+	
 	public Member save(Member member) {
 		/*
 		 * member id를 보고 갱신 또는 삽입을 정함

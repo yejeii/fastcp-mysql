@@ -1,4 +1,4 @@
-package com.example.fastcp.mysql.controller;
+package com.example.fastcp.mysql.application.usecase.controller;
 
 import java.util.List;
 

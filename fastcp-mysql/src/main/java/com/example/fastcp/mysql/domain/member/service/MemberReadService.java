@@ -26,6 +26,11 @@ public class MemberReadService {
 		return toDto(member);
 	}
 	
+	public List<MemberDto> getMembers(List<Long> ids) {
+		var members = memberRepository.findAllbyIdIn(ids);
+		return members.stream().map(this::toDto).toList();
+	}
+	
 	public List<MemberNicknameHistoryDto> getNicknameHistories(Long memberId) {
 		return memberNicknameHistoryRepository
 				.findAllByMemberId(memberId)
